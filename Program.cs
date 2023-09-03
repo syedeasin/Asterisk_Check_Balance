@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Channels;
@@ -11,7 +11,7 @@ namespace CheckBalance
     class Program
     {
         public static Dictionary<string, CallInfo> channelWiseCallInfo= new Dictionary<string,CallInfo>();
-        private static String TestChannelId;
+        private static String onGoingChannelId;
         
         static void Main(string[] args)
         {
@@ -38,10 +38,13 @@ namespace CheckBalance
                 {
                     if (e.UniqueId == e.Attributes.ElementAt(4).Value)
                     {
-                        TestChannelId = e.Channel;
+                       
+                        onGoingChannelId = e.Channel;
                         // Console.WriteLine(TestChannelId);
-                        CallInfo callInfo = new CallInfo(e.CallerIdNum,e.Channel);
-                        channelWiseCallInfo.Add(callInfo.ChannelId,callInfo); 
+                        CallInfo callInfo = new CallInfo(e);
+                        channelWiseCallInfo.Add(e.Channel,callInfo); 
+                        Console.WriteLine(e.Channel);
+                        
                     }
  
                 };
@@ -51,32 +54,37 @@ namespace CheckBalance
                 managerConnection.NewState += (sender, e) =>
                 {
 
-                    // Console.WriteLine(e);
+                    
 
-                    for (int i = 0; i < channelWiseCallInfo.Count; i++)
+                    
+                    if (e.Channel == onGoingChannelId)
                     {
-                        // Console.WriteLine(channelWiseCallInfo.ElementAt(i).Value.ChannelId);
-                    }
-
-                    if (e.Channel == TestChannelId)
-                    {
-                        CallInfo callInfo = channelWiseCallInfo[TestChannelId];
+                        
+                        CallInfo callInfo = channelWiseCallInfo[onGoingChannelId];
                         callInfo.AnswerInfo = e;
-                        Console.WriteLine(callInfo.AnswerInfo);
+                        Console.WriteLine(e.Channel);
+                        Console.WriteLine(channelWiseCallInfo.Count);
                     }
 
-                    // Console.WriteLine($"{callInfo.ChannelId}-----{callInfo.CalledId}-------{channelWiseCallInfo.Count}");
+                  
                     // string channel = e.Channel;
                     //     
                     // callInfo.CalledId = e.Connectedlinenum;
                     // callInfo.InviteInfo = e;
 
                 };
+                
+               
                 //Step 3: Details After Call Is Hungup
                 managerConnection.Hangup += (sender, e) =>
                 {
-               
-                   
+
+                    if (e.Channel == onGoingChannelId)
+                    {
+                        channelWiseCallInfo.Remove(onGoingChannelId);
+                        Console.WriteLine(channelWiseCallInfo.Count);
+                    }
+                    
                 };
                 
                 // Wait for user input to keep the program running ***

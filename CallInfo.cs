@@ -1,4 +1,3 @@
-
 using AsterNET.Manager.Event;
 
 namespace CheckBalance
@@ -12,10 +11,9 @@ namespace CheckBalance
         public NewChannelEvent InviteInfo { get; set; }
         public NewStateEvent AnswerInfo { get; set; }
 
-        public CallInfo(string calledId, string channelId)
+        public CallInfo(NewChannelEvent inviteInfo)
         {
-            CalledId = calledId;
-            ChannelId = channelId;
+            InviteInfo = inviteInfo;
         }
     }
 }

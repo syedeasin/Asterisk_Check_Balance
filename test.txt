@@ -1,0 +1,118 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using AsterNET.Manager;
+using AsterNET.Manager.Action;
+using AsterNET.Manager.Response;
+
+namespace CheckBalance
+{
+    class Program
+    {
+        private string userInput;
+        static void Main(string[] args)
+        {
+            Dictionary<string, string> callRecord = new Dictionary<string, string>();
+            // string callerId = Console.ReadLine();
+            
+            ManagerConnection managerConnection =
+                new ManagerConnection("192.168.0.125", 5038, "Asterisk-Easin", "121212");
+
+            string amiHostname = "192.168.0.125";
+            int amiPort = 5038;
+            string amiUsername = "Asterisk-Easin";
+            string amiPassword = "121212";
+            
+            try
+            {
+                managerConnection.Login();
+                // ManagerActionEvent action = new ManagerActionEvent("Command");
+                
+                string customCommandAction = "Originate 192.168.0.125/121212 extension 323232@register";
+                CommandAction commandAction = new CommandAction(customCommandAction);
+                
+                // Send the action and wait for a response
+                int timeoutMilliseconds = (int)TimeSpan.FromSeconds(30).TotalMilliseconds;
+                ManagerResponse response = managerConnection.SendAction(commandAction, timeoutMilliseconds);
+                
+                 
+                // my code starts here
+                
+                // Register for the events you're interested in
+                managerConnection.NewChannel += (sender, e) =>
+                {
+                    // Console.WriteLine($"Pre: {e}");
+                    // string input = ${e.Channel};
+                    callRecord.Add(e.CallerIdNum,e.Channel);
+                    // Console.WriteLine($"New Channel: {e.Channel} - Caller ID: {e.CallerIdName} ({e.CallerIdNum})");
+                    
+                    // string channel = $"{e.Channel}";
+                    //
+              
+                    // HangupAction action = new HangupAction(channel);
+                    // managerConnection.SendAction(action);
+                };
+
+                managerConnection.NewState += (sender, e) =>
+                {
+                    // Console.WriteLine($"New State: {e} - State: {e}");
+                    // Console.WriteLine($"Sender: {sender} - State: {e}");
+                     // Console.WriteLine($"Sender: {sender}");
+                     // Console.WriteLine($"Post: {e}");
+                     // Console.WriteLine($"Caller: {e.Connectedlinenum}");
+                    
+                     // Console.WriteLine($"Sender: {e.Connectedlinenum}");
+                     
+                     
+                 
+
+                     // Console.WriteLine("Hanged");
+                     // string channel = $"{e.Channel}";
+                     // HangupAction action = new HangupAction(channel);
+                     // managerConnection.SendAction(action);
+         
+                };
+
+                managerConnection.Hangup += (sender, e) =>
+                {
+                    // Console.WriteLine($"Hangup: {e.Channel} - Caller ID: {e.CallerIdName} ({e.CallerIdNum}) - Reason: {e}");
+                    Console.WriteLine(callRecord.First());
+                };
+
+                // Wait for user input to keep the program running
+                Console.WriteLine("Press Enter to exit.");
+                Console.ReadLine();
+                
+                
+                // my code ends here
+
+                // Check if the action was successful
+                if (response.IsSuccess())
+                {
+                    // Extract and process the user balance from the response
+                    // string userBalance = response.GetAttribute("user_balance");
+                    // Console.WriteLine("User Balance: " + response);
+                    // Console.WriteLine("User Balance: " + response.GetAttribute("user_balance"));
+
+                    // Process the user balance as needed
+                }
+                else
+                {
+                    // Handle errors or log the response if necessary
+                    // Console.WriteLine("Error: " + response);
+                }
+                
+                
+            }
+            catch (Exception ex)
+            {
+                // Console.WriteLine("Exception: " + ex.Message);
+            }
+            finally
+            {
+                // Close the connection when done
+                managerConnection.Logoff();
+            }
+        }
+    }
+}
